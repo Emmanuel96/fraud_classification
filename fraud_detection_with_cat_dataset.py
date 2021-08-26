@@ -13,6 +13,7 @@ import plotly.graph_objects as go
 
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import AdaBoostClassifier
+from imblearn.over_sampling import SMOTE
 
 
 from sklearn.preprocessing import StandardScaler # data normalization
@@ -77,14 +78,6 @@ pprint(df.isnull().sum())
 # drop old balance
 df.drop(['oldbalanceOrg'], axis = 1, inplace = True)
 
-# Create a pivot table with fraud and isflagged fraud
-df_pivot =pd.pivot_table(df,index=["type"],
-                               values=['isFraud','isFlaggedFraud'],
-                               aggfunc=[np.sum], margins=True)
-# set option up to show values without exponential
-pd.set_option('display.float_format', lambda x: '%.3f' % x)
-pprint(df_pivot)
-
 # #Adding some color to our pivot table 
 # color_map = sns.light_palette("blue", as_cmap=True)
 # df_pivot.style.background_gradient(cmap=color_map)
@@ -102,11 +95,6 @@ lst = [df]
 for class_index, group in df.groupby('isFraud'):
     lst.append(group.sample(max_size-len(group), replace=True))
 df = pd.concat(lst)
-
-
-# #Checking the balanced target
-# fig = go.Figure(data=[go.Pie(labels=['Not Fraud','Fraud'], values=df['isFraud'].value_counts())])
-# fig.show()
 
 # ---------- REMEMBER IT'S THE SECOND CONDA ------------ #
 # convert categorical data into numeric values: 
@@ -128,12 +116,33 @@ y=df['isFraud']
 # # Splitting our data into training and testing dataset 
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.7, random_state=1)
 
-# Building model: 
-mlp_cv = MLPClassifier()
-rf_cv=RandomForestClassifier(random_state=123)
-dt_cv=DecisionTreeClassifier(random_state=123)
-svc_cv=SVC(kernel='linear',random_state=123)
-knn_cv=KNeighborsClassifier()
+# handle balancing of training dataset to avoid oversampling 
+
+# # Create a pivot table with fraud and isflagged fraud
+# X_train =pd.pivot_table(X_train,index=["type"],
+#                                values=['isFlaggedFraud'],
+#                                aggfunc=[np.sum], margins=True)
+# # set option up to show values without exponential
+# pd.set_option('display.float_format', lambda x: '%.3f' % x)
+# pprint(X_train)
+
+sm = SMOTE(random_state=27)
+X_train, y_train = sm.fit_resample(X_train, y_train)
+pprint(X_train)
+
+print(X_train.shape, y_train.shape)
+
+#Checking the balanced target
+fig = go.Figure(data=[go.Pie(labels=['Not Fraud','Fraud'], values=y_train.value_counts())])
+fig.show()
+
+# uncomment this section to test with other classification algorithms
+# # Building model: 
+# mlp_cv = MLPClassifier()
+# rf_cv=RandomForestClassifier(random_state=123)
+# dt_cv=DecisionTreeClassifier(random_state=123)
+# svc_cv=SVC(kernel='linear',random_state=123)
+# knn_cv=KNeighborsClassifier()
 
 # cv_dict = {0: 'Neural Network', 1: 'Random Forest',2:'Decision Tree',3:'SVC',4:'KNN'}
 # cv_models=[mlp_cv,rf_cv, dt_cv, svc_cv, knn_cv]
