@@ -12,9 +12,7 @@ import itertools # advanced tools
 import plotly.graph_objects as go
 
 from sklearn.neural_network import MLPClassifier
-from sklearn.ensemble import AdaBoostClassifier
 from imblearn.over_sampling import SMOTE
-
 
 from sklearn.preprocessing import StandardScaler # data normalization
 from sklearn.model_selection import train_test_split # data split
@@ -23,13 +21,10 @@ from sklearn.neighbors import KNeighborsClassifier # KNN algorithm
 from sklearn.linear_model import LogisticRegression # Logistic regression algorithm
 from sklearn.svm import SVC # SVM algorithm
 from sklearn.ensemble import RandomForestClassifier # Random forest tree algorithm
-# from xgboost import XGBClassifier # XGBoost algorithm
 
 from sklearn.metrics import confusion_matrix # evaluation metric
 from sklearn.metrics import accuracy_score # evaluation metric
 from sklearn.metrics import f1_score # evaluation metric
-
-from sklearn.naive_bayes import GaussianNB
 
 import seaborn as sns
 
@@ -44,8 +39,6 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
-from sklearn.linear_model import SGDClassifier
-
 
 #Misc libraries
 import warnings
@@ -91,12 +84,11 @@ df.drop(['oldbalanceOrg'], axis = 1, inplace = True)
 max_size = df['isFraud'].value_counts().max()
 
 #we use that to balance our dataset with the code below
-lst = [df]
-for class_index, group in df.groupby('isFraud'):
-    lst.append(group.sample(max_size-len(group), replace=True))
-df = pd.concat(lst)
+# lst = [df]
+# for class_index, group in df.groupby('isFraud'):
+#     lst.append(group.sample(max_size-len(group), replace=True))
+# df = pd.concat(lst)
 
-# ---------- REMEMBER IT'S THE SECOND CONDA ------------ #
 # convert categorical data into numeric values: 
 
 df = pd.concat([df,pd.get_dummies(df['type'], prefix='type_')],axis=1)
@@ -116,6 +108,7 @@ y=df['isFraud']
 # # Splitting our data into training and testing dataset 
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.7, random_state=1)
 
+# commented this out because it's a better idea to balance only the training dataset as opposed to both the training and  testing dataset
 # handle balancing of training dataset to avoid oversampling 
 
 # # Create a pivot table with fraud and isflagged fraud
@@ -138,17 +131,18 @@ fig.show()
 
 # uncomment this section to test with other classification algorithms
 # # Building model: 
-# mlp_cv = MLPClassifier()
-# rf_cv=RandomForestClassifier(random_state=123)
-# dt_cv=DecisionTreeClassifier(random_state=123)
-# svc_cv=SVC(kernel='linear',random_state=123)
-# knn_cv=KNeighborsClassifier()
+mlp_cv = MLPClassifier()
+rf_cv=RandomForestClassifier(random_state=123)
+dt_cv=DecisionTreeClassifier(random_state=123)
+svc_cv=SVC(kernel='linear',random_state=123)
+knn_cv=KNeighborsClassifier()
 
-# cv_dict = {0: 'Neural Network', 1: 'Random Forest',2:'Decision Tree',3:'SVC',4:'KNN'}
-# cv_models=[mlp_cv,rf_cv, dt_cv, svc_cv, knn_cv]
+cv_dict = {0: 'Neural Network', 1: 'Random Forest',2:'Decision Tree',3:'SVC',4:'KNN'}
+cv_models=[mlp_cv,rf_cv, dt_cv, svc_cv, knn_cv]
 
-cv_dict = {0: 'Random Forest Classifier'}
-cv_models = [rf_cv]
+
+# cv_dict = {0: 'Random Forest Classifier'}
+# cv_models = [rf_cv]
 
 for i,model in enumerate(cv_models):
     print("{} Test Accuracy: {}".format(cv_dict[i],cross_val_score(model, X_train, y_train, cv=10, scoring ='accuracy').mean()))
